@@ -15,11 +15,11 @@ var(random_numbers)
 "Assignment 1c"
 
 random_numbers = runif(10000, 0, 1)
-hist(random_numbers, breaks=20)
+hist(random_numbers, breaks=20, main="Assignment 1c")
 
 
 "Assignment 2"
-TODO
+"TODO"
 
 min(faithful$eruptions) 
 max(faithful$eruptions) 
@@ -40,14 +40,14 @@ iris_data <- read.csv("/Users/Benji/Documents/Uni/Master/3.Semester/Data_Mining_
 
 "Assignment 3a"
 
-TODO
+"TODO"
 "Iris-setosa    :50 " 
 "Iris-versicolor:50"
 "Iris-virginica :50"  
 
 "Assignment 3b"
 dev.new()
-plot(iris_data$Sepal.length, iris_data$Petal.length, xlab="Sepal Length", ylab="Petal Length", main="Iris Data Petal & Sepal Lenth")
+plot(iris_data$Sepal.length, iris_data$Petal.length, xlab="Sepal Length", ylab="Petal Length", main="Assignment 3b")
 
 "Inference: 
 The petal length and the sepal length seem to be correlated positively. The higher the petal length, the higher also the sepal length"
@@ -55,22 +55,14 @@ The petal length and the sepal length seem to be correlated positively. The high
 "Assignment 3c"
 iris_setosa <- iris_data[iris_data$Species == "Iris-setosa", ]
 dev.new()
-plot(iris_setosa$Sepal.length, iris_setosa$Petal.length, xlab="Iris Setosa Sepal Length", ylab="Iris Setosa Petal Length", main="Iris Setosa Petal & Sepal Lenth")
-
-iris_virginica <- iris_data[iris_data$Species == "Iris-virginica", ]
-dev.new()
-plot(iris_virginica$Sepal.length, iris_virginica$Petal.length, xlab="Iris Virginica Sepal Length", ylab="Iris Virginica Petal Length", main="Iris Virginica Petal & Sepal Lenth")
-
-iris_versicolor <- iris_data[iris_data$Species == "Iris-versicolor", ]
-dev.new()
-plot(iris_versicolor$Sepal.length, iris_versicolor$Petal.length, xlab="Iris Versicolor Sepal Length", ylab="Iris Versicolor Petal Length", main="Iris Versicolor Petal & Sepal Lenth")
+plot(iris_setosa$Sepal.length, iris_setosa$Petal.length, xlab="Iris Setosa Sepal Length", ylab="Iris Setosa Petal Length", main="Assignment 3c")
 
 "The Petal Length and Sepal Length of Iris Virginica and Versicolor are also correlated positively.  
 The Petal Length and Seapal Length of Iris-Setosa does not seem to be correlated. "
 
 "Assignment 3d"
 dev.new()
-plot(iris_setosa$Sepal.length, iris_setosa$Petal.length, col="red", xlab="Iris Setosa Sepal Length", xlim=c(3,10), ylab="Iris Setosa Petal Length", ylim=c(0,10), main="Iris Setosa Petal & Sepal Lenth")
+plot(iris_setosa$Sepal.length, iris_setosa$Petal.length, col="red", xlab="Iris Setosa Sepal Length", xlim=c(3,10), ylab="Iris Setosa Petal Length", ylim=c(0,10), main="Assignment 3d")
 
 iris_rest <- iris_data[iris_data$Species != "Iris-setosa", ]
 points(iris_rest$Sepal.length, iris_rest$Petal.length, col="blue")
@@ -80,11 +72,11 @@ points(iris_rest$Sepal.length, iris_rest$Petal.length, col="blue")
 data_points = data.frame(matrix(runif(50*100), 50, 100))
 correlations = cor(data_points)
 dev.new()
-hist(correlations)
+hist(correlations, main="Assignment 4a")
 
 "Assignment 4b"
 dev.new()
-hist(correlations, breaks=20, xlim=c(-0.6,+0.6), col="blue")
+hist(correlations, breaks=20, xlim=c(-0.6,+0.6), col="blue", main="Assignment 4b")
 
 "Assignment 5: Regression"
 
@@ -92,13 +84,13 @@ x_age = c(16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)
 y_height = c(76.2, 77.1, 78.1, 78.4, 78.8, 79.7, 79.7, 81.1, 81.2, 81.4, 82.8, 83.5)
 fm <- lm(y_height ~ x_age)
 dev.new()
-plot(x_age, y_height, xlim=c(0,30), ylim=c(0,90))
+plot(x_age, y_height, xlim=c(0,30), ylim=c(0,90), main="Assignment 5")
 abline(fm, col = "red")
 fitted.values(fm)
 
 
 "Assignment 6: Performance Measures I"
-TODO 
+"TODO" 
 
 "High accuracy: 
 - Cancer Detection --> People who do not have cancer should not be treated with chemo therapy(high precision) and all people who have cancer should be classified as having cancer (the earlier the cancer is found and treated the better)."
@@ -118,7 +110,7 @@ predicted<-c(0.95,0.93,0.93,0.88,0.86,0.85,0.82,0.8,0.8,0.79,0.77,0.76,0.73,0.65
 pred<-prediction(predicted, classes)
 perf <- performance(pred, "tpr", "fpr")
 dev.new()
-plot(perf)
+plot(perf, main="Bonus Assignment 1")
 
 
 
