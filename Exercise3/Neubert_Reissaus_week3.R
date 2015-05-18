@@ -238,14 +238,21 @@ numberOfLeaves <- function(node){
     
     totalNumber = totalNumber + numberOfLeaves(child)
   } 
-
   return(totalNumber)  
 }
 
-
-
-numberOfNodes <- function(rootNode){
-  
+numberOfNodes <- function(node){
+  if(length(node@children) == 0){
+    return(1)
+  }
+  totalNumber = 0
+  for(i in 1:length(node@children)){  
+    child = node@children[[i]]  
+    
+    totalNumber = totalNumber + numberOfNodes(child)
+  } 
+  totalNumber = totalNumber + 1
+  return(totalNumber) 
 }
 
 treeDepth <- function(rootNode){
@@ -254,7 +261,7 @@ treeDepth <- function(rootNode){
 
 
 # 1
-
+# 
 # customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
 # textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
 # gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
@@ -271,6 +278,7 @@ treeDepth <- function(rootNode){
 # root = GrowTree(root, features, categories, classifierAttribute)
 # #classifyInstances(root, df)
 # totalLeaves = numberOfLeaves(root)
+# totalNodes = numberOfNodes(root)
 
 
 # 2
@@ -284,6 +292,7 @@ root = Node(dataInstances=white_wine_data)
 root = GrowTree(root, features, categories, classifierAttribute)
 # classifyInstances(root, white_wine_data)
 totalLeaves = numberOfLeaves(root)
+totalNodes = numberOfNodes(root)
 
 # 3
 
