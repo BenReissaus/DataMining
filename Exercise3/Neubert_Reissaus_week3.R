@@ -227,23 +227,22 @@ classifyInstances <- function(rootNode, dataInstances){
   }
 }
 
-numberOfLeaves <- function(node, totalNumber){
-  
+numberOfLeaves <- function(node){
 
   if(length(node@children) == 0){
-    totalNumber = totalNumber + 1
-    print(paste(c(" Category: ", node@label), collapse = " "))
-    print(paste(c("Leaf found. Leaf sum: ", totalNumber), collapse = " "))
-    return(totalNumber)
+    return(1)
   }
-  
+  totalNumber = 0
   for(i in 1:length(node@children)){  
-    child = node@children[[i]]    
-    totalNumber = totalNumber + numberOfLeaves(child, totalNumber)
+    child = node@children[[i]]  
+    
+    totalNumber = totalNumber + numberOfLeaves(child)
   } 
 
   return(totalNumber)  
 }
+
+
 
 numberOfNodes <- function(rootNode){
   
@@ -256,35 +255,35 @@ treeDepth <- function(rootNode){
 
 # 1
 
-customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
-textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
-gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
-avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
-category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
-
-df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
-
-features = c("textiles", "gifts", "avg_price")
-categories = c("T", "G", "TG", "N")
-classifierAttribute = "category"
-
-root = Node(dataInstances=df)
-root = GrowTree(root, features, categories, classifierAttribute)
-classifyInstances(root, df)
-total = numberOfLeaves(root, 0)
+# customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
+# textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
+# gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
+# avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
+# category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
+# 
+# df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
+# 
+# features = c("textiles", "gifts", "avg_price")
+# categories = c("T", "G", "TG", "N")
+# classifierAttribute = "category"
+# 
+# root = Node(dataInstances=df)
+# root = GrowTree(root, features, categories, classifierAttribute)
+# #classifyInstances(root, df)
+# totalLeaves = numberOfLeaves(root)
 
 
 # 2
-# white_wine_data <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
-# columnNames = names(white_wine_data)
-# features = columnNames[columnNames != "quality"]
-# categories = unique(white_wine_data$quality)
-# classifierAttribute = "quality"
-# 
-# root = Node(dataInstances=white_wine_data)
-# root = GrowTree(root, features, categories, classifierAttribute)
+white_wine_data <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
+columnNames = names(white_wine_data)
+features = columnNames[columnNames != "quality"]
+categories = unique(white_wine_data$quality)
+classifierAttribute = "quality"
+
+root = Node(dataInstances=white_wine_data)
+root = GrowTree(root, features, categories, classifierAttribute)
 # classifyInstances(root, white_wine_data)
-# 
+totalLeaves = numberOfLeaves(root)
 
 # 3
 
