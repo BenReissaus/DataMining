@@ -29,7 +29,7 @@ Impurity <- function(categoryCounts, totalInstanceCount){
 }
 
 
-BestSplit <- function(dataInstances, features, categories, classifierAttribute){
+BestSplit <- function(trainingInstances, features, categories, classifierAttribute){
 
   I_min = log2(length(categories)) 
   splitFeature = NULL
@@ -37,16 +37,16 @@ BestSplit <- function(dataInstances, features, categories, classifierAttribute){
   for(feature in features){
    
     # group by feature values
-    if(class(dataInstances[[feature]]) == "character"){
-      groups = split(dataInstances, f = dataInstances[[feature]])   
+    if(class(trainingInstances[[feature]]) == "character"){
+      groups = split(trainingInstances, f = trainingInstances[[feature]])   
       
-    } else if(class(dataInstances[[feature]]) == "numeric"){   
+    } else if(class(trainingInstances[[feature]]) == "numeric"){   
       
       # do not attempt to split if there is only one value in that column left
-      if(length(unique(dataInstances[[feature]])) == 1){
+      if(length(unique(trainingInstances[[feature]])) == 1){
         next
       }
-      groups = split(dataInstances, cut(dataInstances[[feature]], breaks=2,  dig.lab = 20))
+      groups = split(trainingInstances, cut(trainingInstances[[feature]], breaks=2,  dig.lab = 20))
       
     } else {
       print("Other data type")
@@ -65,7 +65,7 @@ BestSplit <- function(dataInstances, features, categories, classifierAttribute){
       categoryCounts = c(categoryCounts, list(categoryCount))
     }
 
-    totalInstanceCount = nrow(dataInstances)
+    totalInstanceCount = nrow(trainingInstances)
     imp = Impurity(categoryCounts, totalInstanceCount)  
 
     if(imp < I_min){
@@ -79,14 +79,14 @@ BestSplit <- function(dataInstances, features, categories, classifierAttribute){
 
 Homogeneous <- function(node, classifierAttribute){
   
-  uniques=unique(c(node@dataInstances[, classifierAttribute]))  
+  uniques=unique(c(node@trainingInstances[, classifierAttribute]))  
   return(length(uniques) == 1)
 }
 
 CategoryLabel <- function(node, classifierAttribute){
 
   # return the most often ocurring category as label
-  node@label = names(which.max(table(node@dataInstances[[classifierAttribute]])))
+  node@label = names(which.max(table(node@trainingInstances[[classifierAttribute]])))
 
   return(node)
 }
@@ -94,22 +94,22 @@ CategoryLabel <- function(node, classifierAttribute){
 
 SplitByFeature <- function(node, splitFeature){
   
-  dataInstances = node@dataInstances  
+  trainingInstances = node@trainingInstances  
   dataSubsetNodes = list()
   
-  if(class(dataInstances[[splitFeature]]) == "character"){
+  if(class(trainingInstances[[splitFeature]]) == "character"){
   
-    groups = split(dataInstances, f = dataInstances[[splitFeature]])   
+    groups = split(trainingInstances, f = trainingInstances[[splitFeature]])   
     for( group in groups){
       
       groupValue = group[[splitFeature]][[1]]
-      newNode = CharacterNode(dataInstances=group, feature=splitFeature, value=groupValue)  
+      newNode = CharacterNode(trainingInstances=group, feature=splitFeature, value=groupValue)  
       dataSubsetNodes = append(dataSubsetNodes, newNode)
     }    
-  } else if(class(dataInstances[[splitFeature]]) == "numeric"){
+  } else if(class(trainingInstances[[splitFeature]]) == "numeric"){
     
-    cutData = cut(dataInstances[[splitFeature]], breaks=2,  dig.lab = 20)
-    groups = split(dataInstances, cutData)    
+    cutData = cut(trainingInstances[[splitFeature]], breaks=2,  dig.lab = 20)
+    groups = split(trainingInstances, cutData)    
     cutDataLevels = levels(cutData)   
     
     intervals = strsplit(cutDataLevels, " ")    
@@ -117,7 +117,7 @@ SplitByFeature <- function(node, splitFeature){
       lowerBound = as.numeric(sub("[\\[\\(](.+),.*", "\\1", intervals[[i]]))
       upperBound = as.numeric(sub("[^,]*,([^]]*)\\]", "\\1", intervals[[i]]))
 
-      newNode = NumericNode(dataInstances=groups[[i]], feature=splitFeature, lowerBound=lowerBound, upperBound=upperBound)  
+      newNode = NumericNode(trainingInstances=groups[[i]], feature=splitFeature, lowerBound=lowerBound, upperBound=upperBound)  
       dataSubsetNodes = append(dataSubsetNodes, newNode)   
     }
   } 
@@ -128,19 +128,19 @@ GrowTree <- function(node, features, categories, classifierAttribute) {
   
   if (Homogeneous(node, classifierAttribute)){
     node = CategoryLabel(node, classifierAttribute)
-    node@dataInstances = data.frame()
+    #node@trainingInstances = data.frame()
     return(node)
   }
 
   # find best split feature
-  splitFeature <- BestSplit(node@dataInstances, features, categories, classifierAttribute)
+  splitFeature <- BestSplit(node@trainingInstances, features, categories, classifierAttribute)
 
   # assign feature to parent node
   node@label = splitFeature
     
   # create child nodes with split data instances
   childNodes = SplitByFeature(node, splitFeature)  
-  node@dataInstances = data.frame()
+  #node@trainingInstances = data.frame()
   
   for(childNode in childNodes){
       
@@ -158,7 +158,8 @@ Node <- setClass(
     children = "list",
     label = "character",
     feature = "character",
-    dataInstances = "data.frame"
+    trainingInstances = "data.frame", 
+    splitFeature = "character"
   ), 
   prototyp=list(
     children = list(),
@@ -219,10 +220,10 @@ classifyInstance <- function(node, instance){
    print("none found")
 }
 
-classifyInstances <- function(rootNode, dataInstances){
+classifyInstances <- function(rootNode, testInstances){
 
-  for(i in 1:nrow(dataInstances)){  
-    instance = dataInstances[i,]  
+  for(i in 1:nrow(testInstances)){  
+    instance = testInstances[i,]  
     classifyInstance(rootNode, instance)
   }
 }
@@ -285,43 +286,82 @@ maxTreeDepth <- function(node){
   return(max(maximas) + 1)  
 }
 
+pruning <- function(node, pruningSet){
+  
+  # find lowester inner node
+  
+  
+  
+}
+
+prune <- function(node){
+  
+  if(length(node@children) == 0){
+    return()
+  }
+
+  for(i in 1:length(node@children)){  
+    child = node@children[[i]]  
+    prune(child)
+  } 
+    
+  
+  print(paste(c("Inner node: ", node@label), collapse = " "))
+  return() 
+}
+
 
 # 1
 # 
-customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
-textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
-gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
-avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
-category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
+# customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
+# textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
+# gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
+# avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
+# category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
+# 
+# df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
+# 
+# features = c("textiles", "gifts", "avg_price")
+# categories = c("T", "G", "TG", "N")
+# classifierAttribute = "category"
+# 
+# root = Node(trainingInstances=df)
+# root = GrowTree(root, features, categories, classifierAttribute)
+# #classifyInstances(root, df)
+# # totalLeaves = numberOfLeaves(root)
+# # totalNodes = numberOfNodes(root)
+# # minDepth = minTreeDepth(root)
+# # maxDepth = maxTreeDepth(root)
+# prune(root)
 
-df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
-
-features = c("textiles", "gifts", "avg_price")
-categories = c("T", "G", "TG", "N")
-classifierAttribute = "category"
-
-root = Node(dataInstances=df)
-root = GrowTree(root, features, categories, classifierAttribute)
-#classifyInstances(root, df)
-totalLeaves = numberOfLeaves(root)
-totalNodes = numberOfNodes(root)
-minDepth = minTreeDepth(root)
-maxDepth = maxTreeDepth(root)
 
 # 2
-# white_wine_data <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
-# columnNames = names(white_wine_data)
-# features = columnNames[columnNames != "quality"]
-# categories = unique(white_wine_data$quality)
-# classifierAttribute = "quality"
-# 
-# root = Node(dataInstances=white_wine_data)
-# root = GrowTree(root, features, categories, classifierAttribute)
-# # classifyInstances(root, white_wine_data)
-# totalLeaves = numberOfLeaves(root)
-# totalNodes = numberOfNodes(root)
+whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
+columnNames = names(whiteWineData)
+features = columnNames[columnNames != "quality"]
+categories = unique(whiteWineData$quality)
+classifierAttribute = "quality"
+
+trainingSet = whiteWineData
+testSet = whiteWineData
+
+# trainingSet = whiteWineData[c(seq(1,4286)),]
+# testSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
+root = Node(trainingInstances=trainingSet)
+root = GrowTree(root, features, categories, classifierAttribute)
+classifyInstances(root, testSet)
+totalLeaves = numberOfLeaves(root)
+totalNodes = numberOfNodes(root)
 
 # 3
+
+# grow tree with the training set and prune with the pruning set
+# size of training set = 2x size of pruning set
+# trainingSet = whiteWineData[c(seq(1,3264)),]
+# pruningSet = whiteWineData[c(seq(3265,nrow(whiteWineData))),]
+# 
+# prune
+
 
 # 4
 # appends an element to an existing list
