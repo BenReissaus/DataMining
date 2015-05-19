@@ -320,26 +320,25 @@ getBestSubTree <- function(node, classifiedInstances, classifierAttribute){
   
   totalChildrenPositives = nrow(subset(classifiedInstances, classifiedInstances[[classifierAttribute]] == classifiedInstances[["classified"]]))
   
+  # set defaults
   majorityVotingPositives = 0
   majorityClass = node@children[[1]]@trainingInstances[1,][[classifierAttribute]]
   
-  if(length(classifiedInstances) > 0){
-    majorityClass = names(which.max(table(classifiedInstances[[classifierAttribute]])))
+  if(length(classifiedInstances) > 0){ # subtree contains classified elements
+    
+    # save all classified instances in the node for future pruning in upper tree
+    node@testInstances = classifiedInstances 
+    
     majorityVotingPositives = nrow(subset(classifiedInstances, classifiedInstances[[classifierAttribute]] == majorityClass))
+    majorityClass = names(which.max(table(classifiedInstances[[classifierAttribute]])))
     
     if(majorityVotingPositives >= totalChildrenPositives){ # prune the tree 
       
-      classifiedInstances[["classified"]] = majorityClass
-      node@testInstances = classifiedInstances
-      
+      node@testInstances[["classified"]] = majorityClass       
       node@label = as.character(majorityClass)
       node@feature = ""
-      node@children = list()
-      return(node)
+      node@children = list()    
     }
-    else { # leave the tree as it is
-      return(node)
-    }  
   }
   else { # none of the chlildren has classified a test element
     node@label = as.character(majorityClass)
@@ -361,16 +360,10 @@ prune <- function(node, classifierAttribute){
     
     node@children[[i]] = prune(node@children[[i]], classifierAttribute)
     classifiedInstances = rbind(classifiedInstances, node@children[[i]]@testInstances)
-    #     print("classifiedInstances")
   } 
-  
   node = getBestSubTree(node, classifiedInstances, classifierAttribute)
-  #   print(paste(c("Inner node: ", node@feature), collapse = " "))
-  
   return(node) 
 }
-
-
 
 
 # Exercise 1
@@ -419,13 +412,15 @@ print(paste(c("Maximum Tree Depth: ", maxTreeDepth(root)), collapse = " "))
 # 3
 # grow tree with the training set and prune with the pruning set
 trainingSet = whiteWineData[c(seq(1,4286)),]
-testSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
+pruningSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
 
 root = Node(trainingInstances=trainingSet)
 root = GrowTree(root, features, categories, classifierAttribute)
-root = classifyInstances(root, testSet)
+root = classifyInstances(root, pruningSet)
 
 root = prune(root, classifierAttribute)
+
+classInstances = collectClassifiedInstances(root)
 
 print(paste(c("Number of leaves: ", numberOfLeaves(root)), collapse = " "))
 print(paste(c("Number of nodes: ", numberOfNodes(root)), collapse = " "))
