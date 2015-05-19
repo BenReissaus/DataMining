@@ -1,14 +1,12 @@
 setwd("/Users/Benji/Documents/Uni/Master/3.Semester/Data_Mining_Probabilistic_Reasoning/Exercises/Exercise3/")
 
-# 1
-
 Impurity <- function(categoryCounts, totalInstanceCount){
   
   # categoryCounts for textiles 
   #       few:    (3,2)
   #       medium: (2,2,2)
   #       many:   (2,2,2)
-
+  
   weightedEntropy = 0
   for(categoryCountsPerValue in categoryCounts){
     
@@ -30,12 +28,12 @@ Impurity <- function(categoryCounts, totalInstanceCount){
 
 
 BestSplit <- function(trainingInstances, features, categories, classifierAttribute){
-
+  
   I_min = log2(length(categories)) 
   splitFeature = NULL
   
   for(feature in features){
-   
+    
     # group by feature values
     if(class(trainingInstances[[feature]]) == "character"){
       groups = split(trainingInstances, f = trainingInstances[[feature]])   
@@ -64,16 +62,16 @@ BestSplit <- function(trainingInstances, features, categories, classifierAttribu
       }
       categoryCounts = c(categoryCounts, list(categoryCount))
     }
-
+    
     totalInstanceCount = nrow(trainingInstances)
     imp = Impurity(categoryCounts, totalInstanceCount)  
-
+    
     if(imp < I_min){
       I_min = imp
       splitFeature = feature
     }  
   }
-
+  
   return(splitFeature)
 }
 
@@ -84,10 +82,10 @@ Homogeneous <- function(node, classifierAttribute){
 }
 
 CategoryLabel <- function(node, classifierAttribute){
-
+  
   # return the most often ocurring category as label
   node@label = names(which.max(table(node@trainingInstances[[classifierAttribute]])))
-
+  
   return(node)
 }
 
@@ -98,7 +96,7 @@ SplitByFeature <- function(node, splitFeature){
   dataSubsetNodes = list()
   
   if(class(trainingInstances[[splitFeature]]) == "character"){
-  
+    
     groups = split(trainingInstances, f = trainingInstances[[splitFeature]])   
     for( group in groups){
       
@@ -121,7 +119,7 @@ SplitByFeature <- function(node, splitFeature){
     newNodeLower = NumericNode(trainingInstances=groups[[2]], feature=splitFeature, splitValue=splitValue, position="upper")  
     dataSubsetNodes = append(dataSubsetNodes, newNodeLower)
     
-
+    
   } 
   return(dataSubsetNodes)
 }
@@ -133,19 +131,19 @@ GrowTree <- function(node, features, categories, classifierAttribute) {
     #node@trainingInstances = data.frame()
     return(node)
   }
-
+  
   # find best split feature
   splitFeature <- BestSplit(node@trainingInstances, features, categories, classifierAttribute)
-
+  
   # assign feature to parent node
   node@label = splitFeature
-    
+  
   # create child nodes with split data instances
   childNodes = SplitByFeature(node, splitFeature)  
   #node@trainingInstances = data.frame()
   
   for(childNode in childNodes){
-      
+    
     #add each childnode to parent
     childNode = GrowTree(childNode, features, categories, classifierAttribute)     
     node@children = append(node@children, childNode)  
@@ -173,11 +171,11 @@ Node <- setClass(
 NumericNode <- setClass(
   "NumericNode",
   slots = c(
-      splitValue = "numeric", 
-      position = "character" # can be lower or upper   
-    ), 
+    splitValue = "numeric", 
+    position = "character" # can be lower or upper   
+  ), 
   contains="Node"
-  )
+)
 
 CharacterNode <- setClass(
   "CharacterNode",
@@ -185,7 +183,7 @@ CharacterNode <- setClass(
     value = "character"  
   ),
   contains="Node" 
-  )
+)
 
 setGeneric(name="fullFillsCondition", 
            def = function(nodeObject, dataInstance){
@@ -214,29 +212,29 @@ setMethod(f="fullFillsCondition",
           })
 
 classifyInstance <- function(node, instance){
-
+  
   if(length(node@children) == 0){
     copyInstance = instance
     copyInstance[, "classified"] = node@label
     node@testInstances = rbind(node@testInstances, copyInstance)
-#     print(paste(c("Instance: ", row.names(instance), " Category: ", node@label), collapse = " "))
+    #     print(paste(c("Instance: ", row.names(instance), " Category: ", node@label), collapse = " "))
     return(node)
   }
-
+  
   for(i in 1:length(node@children)){  
     child = node@children[[i]]
-
+    
     if(fullFillsCondition(child, instance)){
       node@children[[i]] = classifyInstance(child, instance)
       return(node)
     } 
   } 
   return(node)
-
+  
 }
 
 classifyInstances <- function(rootNode, testInstances){
-
+  
   for(i in 1:nrow(testInstances)){  
     instance = testInstances[i,]  
     rootNode = classifyInstance(rootNode, instance)
@@ -248,7 +246,7 @@ collectClassifiedInstances <- function(node){
   if(length(node@children) == 0){ 
     return(node@testInstances)
   }
-
+  
   instances = data.frame()
   for(i in 1:length(node@children)){  
     child = node@children[[i]]  
@@ -259,7 +257,7 @@ collectClassifiedInstances <- function(node){
 }
 
 numberOfLeaves <- function(node){
-
+  
   if(length(node@children) == 0){
     return(1)
   }
@@ -331,7 +329,7 @@ getBestSubTree <- function(node, classifiedInstances, classifierAttribute){
     
     majorityClass = names(which.max(table(classifiedInstances[[classifierAttribute]])))
     majorityVotingPositives = nrow(subset(classifiedInstances, classifiedInstances[[classifierAttribute]] == majorityClass))
-       
+    
     if(majorityVotingPositives >= totalChildrenPositives){ # prune the tree 
       
       node@testInstances[["classified"]] = majorityClass       
@@ -366,7 +364,7 @@ prune <- function(node, classifierAttribute){
 }
 
 
-# Exercise 1
+# Assignment 1
 customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
 textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
 gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
@@ -388,7 +386,7 @@ print("Classified Instances: ")
 print(classiefiedInstances)
 
 
-# 2
+# Assignment 2
 whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
 columnNames = names(whiteWineData)
 features = columnNames[columnNames != "quality"]
@@ -409,7 +407,8 @@ print(paste(c("Minimum Tree Depth: ", minTreeDepth(root)), collapse = " "))
 print(paste(c("Maximum Tree Depth: ", maxTreeDepth(root)), collapse = " "))
 
 
-# 3
+#  Assignment3
+
 # grow tree with the training set and prune with the pruning set
 trainingSet = whiteWineData[c(seq(1,4286)),]
 pruningSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
@@ -435,7 +434,8 @@ print(paste(c("Minimum Tree Depth: ", minTreeDepth(root)), collapse = " "))
 print(paste(c("Maximum Tree Depth: ", maxTreeDepth(root)), collapse = " "))
 
 
-# 4
+# Assignment 4
+
 # appends an element to an existing list
 append <- function(data,value) {
   data[[length(data) + 1]] <- value
