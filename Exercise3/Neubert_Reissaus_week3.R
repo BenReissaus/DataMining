@@ -136,7 +136,7 @@ GrowTree <- function(node, features, categories, classifierAttribute) {
   splitFeature <- BestSplit(node@trainingInstances, features, categories, classifierAttribute)
 
   # assign feature to parent node
-  node@label = splitFeature
+  node@splitFeature = splitFeature
     
   # create child nodes with split data instances
   childNodes = SplitByFeature(node, splitFeature)  
@@ -159,11 +159,13 @@ Node <- setClass(
     label = "character",
     feature = "character",
     trainingInstances = "data.frame", 
+    testInstances = "data.frame",
     splitFeature = "character"
   ), 
   prototyp=list(
     children = list(),
-    label = ""
+    label = "", 
+    testInstances = data.frame()
   ) 
 )
 
@@ -205,27 +207,48 @@ setMethod(f="fullFillsCondition",
 classifyInstance <- function(node, instance){
 
   if(length(node@children) == 0){
+    copyInstance = instance
+    copyInstance[, "classified"] = node@label
+    node@testInstances = rbind(node@testInstances, copyInstance)
     print(paste(c("Instance: ", row.names(instance), " Category: ", node@label), collapse = " "))
-    return()
+    return(node)
   }
 
   for(i in 1:length(node@children)){  
     child = node@children[[i]]
 
     if(fullFillsCondition(child, instance)){
-      classifyInstance(child, instance)
-      return()
+      node@children[[i]] = classifyInstance(child, instance)
+      return(node)
     } 
   } 
-   print("none found")
+  print("none found")
+  return(node)
+
 }
 
 classifyInstances <- function(rootNode, testInstances){
 
   for(i in 1:nrow(testInstances)){  
     instance = testInstances[i,]  
-    classifyInstance(rootNode, instance)
+    rootNode = classifyInstance(rootNode, instance)
   }
+  return(rootNode)
+}
+
+collectClassifiedInstances <- function(node){
+  if(length(node@children) == 0){ 
+    return(node@testInstances)
+  }
+
+  instances = data.frame()
+  for(i in 1:length(node@children)){  
+    child = node@children[[i]]  
+    
+    instances = rbind(instances, collectClassifiedInstances(child)) 
+    print("test")
+  } 
+  return(instances) 
 }
 
 numberOfLeaves <- function(node){
@@ -306,52 +329,54 @@ prune <- function(node){
   } 
     
   
-  print(paste(c("Inner node: ", node@label), collapse = " "))
+  print(paste(c("Inner node: ", node@splitFeature), collapse = " "))
   return() 
 }
 
 
 # 1
 # 
-# customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
-# textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
-# gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
-# avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
-# category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
-# 
-# df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
-# 
-# features = c("textiles", "gifts", "avg_price")
-# categories = c("T", "G", "TG", "N")
-# classifierAttribute = "category"
-# 
-# root = Node(trainingInstances=df)
-# root = GrowTree(root, features, categories, classifierAttribute)
-# #classifyInstances(root, df)
-# # totalLeaves = numberOfLeaves(root)
-# # totalNodes = numberOfNodes(root)
-# # minDepth = minTreeDepth(root)
-# # maxDepth = maxTreeDepth(root)
+customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
+textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
+gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
+avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
+category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
+
+df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
+
+features = c("textiles", "gifts", "avg_price")
+categories = c("T", "G", "TG", "N")
+classifierAttribute = "category"
+
+root = Node(trainingInstances=df)
+root = GrowTree(root, features, categories, classifierAttribute)
+root = classifyInstances(root, df)
+#root = classifyInstance(root, df[1,])
+classInstances = collectClassifiedInstances(root)
+# totalLeaves = numberOfLeaves(root)
+# totalNodes = numberOfNodes(root)
+# minDepth = minTreeDepth(root)
+# maxDepth = maxTreeDepth(root)
 # prune(root)
 
 
 # 2
-whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
-columnNames = names(whiteWineData)
-features = columnNames[columnNames != "quality"]
-categories = unique(whiteWineData$quality)
-classifierAttribute = "quality"
-
-trainingSet = whiteWineData
-testSet = whiteWineData
-
-# trainingSet = whiteWineData[c(seq(1,4286)),]
-# testSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
-root = Node(trainingInstances=trainingSet)
-root = GrowTree(root, features, categories, classifierAttribute)
-classifyInstances(root, testSet)
-totalLeaves = numberOfLeaves(root)
-totalNodes = numberOfNodes(root)
+# whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
+# columnNames = names(whiteWineData)
+# features = columnNames[columnNames != "quality"]
+# categories = unique(whiteWineData$quality)
+# classifierAttribute = "quality"
+# 
+# trainingSet = whiteWineData
+# testSet = whiteWineData
+# 
+# # trainingSet = whiteWineData[c(seq(1,4286)),]
+# # testSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
+# root = Node(trainingInstances=trainingSet)
+# root = GrowTree(root, features, categories, classifierAttribute)
+# classifyInstances(root, testSet)
+# totalLeaves = numberOfLeaves(root)
+# totalNodes = numberOfNodes(root)
 
 # 3
 
