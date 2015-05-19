@@ -418,10 +418,17 @@ root = Node(trainingInstances=trainingSet)
 root = GrowTree(root, features, categories, classifierAttribute)
 root = classifyInstances(root, pruningSet)
 
+print("Before Pruning")
+print(paste(c("Number of leaves: ", numberOfLeaves(root)), collapse = " "))
+print(paste(c("Number of nodes: ", numberOfNodes(root)), collapse = " "))
+print(paste(c("Minimum Tree Depth: ", minTreeDepth(root)), collapse = " "))
+print(paste(c("Maximum Tree Depth: ", maxTreeDepth(root)), collapse = " "))
+
 root = prune(root, classifierAttribute)
 
 classInstances = collectClassifiedInstances(root)
 
+print("After Pruning")
 print(paste(c("Number of leaves: ", numberOfLeaves(root)), collapse = " "))
 print(paste(c("Number of nodes: ", numberOfNodes(root)), collapse = " "))
 print(paste(c("Minimum Tree Depth: ", minTreeDepth(root)), collapse = " "))
