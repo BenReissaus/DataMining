@@ -112,14 +112,23 @@ SplitByFeature <- function(node, splitFeature){
     groups = split(trainingInstances, cutData)    
     cutDataLevels = levels(cutData)   
     
-    intervals = strsplit(cutDataLevels, " ")    
-    for(i in 1:length(intervals)){
-      lowerBound = as.numeric(sub("[\\[\\(](.+),.*", "\\1", intervals[[i]]))
-      upperBound = as.numeric(sub("[^,]*,([^]]*)\\]", "\\1", intervals[[i]]))
-
-      newNode = NumericNode(trainingInstances=groups[[i]], feature=splitFeature, lowerBound=lowerBound, upperBound=upperBound)  
-      dataSubsetNodes = append(dataSubsetNodes, newNode)   
-    }
+    intervals = strsplit(cutDataLevels, " ")   
+    splitValue = as.numeric(sub("[^,]*,([^]]*)\\]", "\\1", intervals[[1]]))
+    
+    newNodeUpper = NumericNode(trainingInstances=groups[[1]], feature=splitFeature, splitValue=splitValue, position="lower")  
+    dataSubsetNodes = append(dataSubsetNodes, newNodeUpper)
+    
+    newNodeLower = NumericNode(trainingInstances=groups[[2]], feature=splitFeature, splitValue=splitValue, position="upper")  
+    dataSubsetNodes = append(dataSubsetNodes, newNodeLower)
+    
+    
+#     for(i in 1:length(intervals)){
+#       lowerBound = as.numeric(sub("[\\[\\(](.+),.*", "\\1", intervals[[i]]))
+#       upperBound = as.numeric(sub("[^,]*,([^]]*)\\]", "\\1", intervals[[i]]))
+# 
+#       newNode = NumericNode(trainingInstances=groups[[i]], feature=splitFeature, splitValue=lowerBound)  
+#       dataSubsetNodes = append(dataSubsetNodes, newNode)   
+#     }
   } 
   return(dataSubsetNodes)
 }
@@ -172,8 +181,10 @@ Node <- setClass(
 NumericNode <- setClass(
   "NumericNode",
   slots = c(
-    lowerBound = "numeric",
-    upperBound = "numeric"    
+      splitValue = "numeric", 
+      position = "character" # can be lower or upper 
+#     lowerBound = "numeric",
+#     upperBound = "numeric"    
     ), 
   contains="Node"
   )
@@ -200,8 +211,16 @@ setMethod(f="fullFillsCondition",
           signature="NumericNode",
           definition=function(nodeObject, dataInstance){
             feature = nodeObject@feature
-     
-            return((dataInstance[feature] > nodeObject@lowerBound) && (dataInstance[feature] <=  nodeObject@upperBound))
+            position = nodeObject@position
+            splitValue = nodeObject@splitValue
+            
+            if(position == "upper"){
+              return((dataInstance[feature] > splitValue))
+            }
+            else {
+              return((dataInstance[feature] <= splitValue))
+            }
+            
           })
 
 classifyInstance <- function(node, instance){
@@ -210,7 +229,7 @@ classifyInstance <- function(node, instance){
     copyInstance = instance
     copyInstance[, "classified"] = node@label
     node@testInstances = rbind(node@testInstances, copyInstance)
-    print(paste(c("Instance: ", row.names(instance), " Category: ", node@label), collapse = " "))
+#     print(paste(c("Instance: ", row.names(instance), " Category: ", node@label), collapse = " "))
     return(node)
   }
 
@@ -222,7 +241,6 @@ classifyInstance <- function(node, instance){
       return(node)
     } 
   } 
-  print("none found")
   return(node)
 
 }
@@ -246,7 +264,6 @@ collectClassifiedInstances <- function(node){
     child = node@children[[i]]  
     
     instances = rbind(instances, collectClassifiedInstances(child)) 
-    print("test")
   } 
   return(instances) 
 }
@@ -336,23 +353,23 @@ prune <- function(node){
 
 # 1
 # 
-customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
-textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
-gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
-avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
-category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
-
-df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
-
-features = c("textiles", "gifts", "avg_price")
-categories = c("T", "G", "TG", "N")
-classifierAttribute = "category"
-
-root = Node(trainingInstances=df)
-root = GrowTree(root, features, categories, classifierAttribute)
-root = classifyInstances(root, df)
+# customer = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12")
+# textiles = c("medium", "few", "medium", "many", "few", "many", "few", "medium", "many", "few", "few", "many")
+# gifts = c("few", "medium", "many", "few", "medium", "medium", "many", "few", "few", "few", "many", "many")
+# avg_price = c("medium", "low", "medium", "high", "high", "low", "low", "low", "low", "high", "medium", "high")
+# category = c("T", "N", "TG", "T", "G", "TG", "G", "N", "T", "N", "G", "TG")
+# 
+# df = data.frame(customer, textiles, gifts, avg_price, category, stringsAsFactors=F)
+# 
+# features = c("textiles", "gifts", "avg_price")
+# categories = c("T", "G", "TG", "N")
+# classifierAttribute = "category"
+# 
+# root = Node(trainingInstances=df)
+# root = GrowTree(root, features, categories, classifierAttribute)
+# root = classifyInstances(root, df)
 #root = classifyInstance(root, df[1,])
-classInstances = collectClassifiedInstances(root)
+#classInstances = collectClassifiedInstances(root)
 # totalLeaves = numberOfLeaves(root)
 # totalNodes = numberOfNodes(root)
 # minDepth = minTreeDepth(root)
@@ -361,20 +378,21 @@ classInstances = collectClassifiedInstances(root)
 
 
 # 2
-# whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
-# columnNames = names(whiteWineData)
-# features = columnNames[columnNames != "quality"]
-# categories = unique(whiteWineData$quality)
-# classifierAttribute = "quality"
-# 
+whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
+columnNames = names(whiteWineData)
+features = columnNames[columnNames != "quality"]
+categories = unique(whiteWineData$quality)
+classifierAttribute = "quality"
+
 # trainingSet = whiteWineData
 # testSet = whiteWineData
-# 
-# # trainingSet = whiteWineData[c(seq(1,4286)),]
-# # testSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
-# root = Node(trainingInstances=trainingSet)
-# root = GrowTree(root, features, categories, classifierAttribute)
-# classifyInstances(root, testSet)
+
+trainingSet = whiteWineData[c(seq(1,4286)),]
+testSet = whiteWineData[c(seq(4286,nrow(whiteWineData))),]
+root = Node(trainingInstances=trainingSet)
+root = GrowTree(root, features, categories, classifierAttribute)
+root = classifyInstances(root, testSet)
+classInstances = collectClassifiedInstances(root)
 # totalLeaves = numberOfLeaves(root)
 # totalNodes = numberOfNodes(root)
 
