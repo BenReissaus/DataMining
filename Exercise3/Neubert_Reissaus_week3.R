@@ -329,9 +329,9 @@ getBestSubTree <- function(node, classifiedInstances, classifierAttribute){
     # save all classified instances in the node for future pruning in upper tree
     node@testInstances = classifiedInstances 
     
-    majorityVotingPositives = nrow(subset(classifiedInstances, classifiedInstances[[classifierAttribute]] == majorityClass))
     majorityClass = names(which.max(table(classifiedInstances[[classifierAttribute]])))
-    
+    majorityVotingPositives = nrow(subset(classifiedInstances, classifiedInstances[[classifierAttribute]] == majorityClass))
+       
     if(majorityVotingPositives >= totalChildrenPositives){ # prune the tree 
       
       node@testInstances[["classified"]] = majorityClass       
