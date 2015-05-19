@@ -449,3 +449,218 @@ split_folds <- function(k,data) {
   }
   return(folds)
 }
+
+# Assignment 5
+
+# support
+f_0 <- 0.55
+#confidence
+c_0 <- 0.75
+
+readData <- function() {
+  s1 <- c("beef","pickled cucumber","milk",1)
+  s2 <- c("beef","cheese","milk",1)
+  s3 <- c("milk","boots",0)
+  s4 <- c("beef","chicken","cheese",0)
+  s5 <- c("beef","chicken","clothes","pickled cucumber","cheese","milk",1)
+  s6 <- c("chicken","clothes","pickled cucumber",1)
+  s7 <- c("chicken","pickled cucumber","clothes",1)
+  
+  df <- data.frame(id=c(1,2,3,4,5,6,7))
+  items <- list(s1,s2,s3,s4,s5,s6,s7)
+  df$items <- I(items)
+  return(df)
+}
+
+merge <- function(X,Y) {
+  return(unique(c(X,Y)))
+}
+
+extractPossibleItems <- function(itemsets) {
+  items <- list()
+  for(itemset in itemsets) {
+    for(value in itemset) {
+      if(!value %in% items) {
+        items[length(items) + 1] <- value
+      }
+    }
+  }
+  return(items)
+}
+
+Supp <- function(D,itemset) {
+  occ <- 0
+  for(row in data$items) {
+    contained <- T
+    for(item in itemset) {
+      tmp <- (!is.na(item)) & (!item %in% row) 
+      if(tmp) {
+        contained <- F
+      }
+    }
+    if(contained) {
+      occ <- occ + 1
+    }
+  }
+  return(occ/length(data$id))
+}
+
+Conf <- function(D,X,Y) { 
+  return(Supp(D,merge(X,Y))/Supp(D,X))
+}
+
+extend <- function(itemset,allItems) {
+  extendedItemsets <- list()
+  for(ext in allItems) {
+    if(!ext %in% itemset[[1]]) {
+      extension <- c()
+      for(item in itemset[[1]]) {
+        extension[[length(extension)+1]] <- item
+      }
+      extension[[length(extension)+1]] <- ext
+      extendedItemsets[[length(extendedItemsets)+1]] <- extension
+    }
+  }
+  return(extendedItemsets)
+}
+
+minimize <- function(itemsets) {
+  minimizedSets <- list()
+  minimizedSets[[1]] <- itemsets[[1]]
+  for(itemset in itemsets) {
+    newSet <- T
+    tmp <- list()
+    for(minimizedSet in minimizedSets) {
+      if(length(itemset[[1]]) == 1) {
+        tmp <- itemset
+      } else {
+        tmp <- itemset[[1]]
+      }
+      if(length(tmp) == length(minimizedSet)) {
+        a <- setdiff(tmp,minimizedSet)
+        if(length(a) == 0) {
+          newSet <- F
+        }
+      } 
+    }
+    if(newSet) {
+      tmp2 <- list()
+      if(!length(tmp) == 1) {
+        for(value in tmp) {
+          tmp2[[length(tmp2)+1]] <- value
+        }
+      } else {
+        tmp2 <- tmp
+      }
+      minimizedSets[[length(minimizedSets)+1]] <- tmp2
+    }
+  }
+  return(minimizedSets)
+}
+
+FrequentItems <- function(D,f_0) {
+  M <- list()
+  allItems <- extractPossibleItems(D$items)
+  Q <- extractPossibleItems(D$items)
+  while(!length(Q) == 0) {
+    I <- Q[1]
+    Q[1] <- NULL
+    max <- T
+    for(I_prime in extend(I,allItems)) {
+      if(Supp(D,I_prime) >= f_0) {
+        max <- F
+        Q[[length(Q)+1]] <- I_prime
+      }
+    }
+    if(max) {
+      M[[length(M)+1]] <- I
+    }
+  }
+  return(M)
+}
+
+data <- readData()
+
+buildRule <- function(left,right) {
+  rule <- list()
+  rule[[1]] <- left
+  rule[[2]] <- right
+  return(rule)
+}
+
+pruneSubsets <- function(subsets,max) {
+  subsets[[1]] <- NULL
+  for(n in length(subsets):1) {
+    if(length(subsets[[n]]) == max) {
+      subsets[[n]] <- NULL
+    }
+  }
+  return(subsets)
+}
+
+calculateRightSides <- function(leftSides, set) {
+  completeSet <- set
+  for(m in 1:length(leftSides)) {
+    if(length(leftSides[[m]]) == 1) {
+      tmp <- list()
+      tmp[[1]] <- leftSides[[m]]
+      leftSides[[m]] <- tmp
+    } 
+  }
+  for(n in 1:length(leftSides)) { 
+    split <- list()
+    split[[1]] <- leftSides[[n]]
+    
+    # no clue why this dont work
+    difference <- setdiff(leftSides[[n]],set)
+    #####
+    
+    split[[2]] <- difference
+    leftSides[[n]] <- split
+  }
+  return(leftSides)
+}
+
+powerset <- function(set){
+  ps = list()
+  ps[[1]] = numeric()
+  for(element in set){
+    temp = vector(mode="list",length=length(ps))
+    for(subset in 1:length(ps)){
+      temp[[subset]] = c(ps[[subset]],element)
+    }
+    ps=c(ps,temp)
+  }
+  ps <- pruneSubsets(ps,length(set))
+  
+  ps <- calculateRightSides(ps,set)
+  
+  return(ps)
+}
+
+AssociationRules <- function(D,f_0,c_0) {
+  # calculate frequent itemsets
+  frequentSets <- FrequentItems(data,f_0)
+  minimizedFrequentSets <- minimize(frequentSets)
+  
+  # calculate rules
+  rules <- list()
+  for(set in minimizedFrequentSets) {
+    if(length(set) == 1) {
+      if(Supp(D,set) >= c_0) {
+        rules[[length(rules)+1]] <- buildRule(list(),set)
+      }
+    } else {
+      subsets <- powerset(set)
+      for(subset in subsets) {
+        confidence <- Conf(D,subset[[1]],subset[[2]])
+        if(confidence >= c_0) {
+          rules[[length(rules)+1]] <- buildRule(subset[[1]], subset[[2]])
+        }
+      } 
+    }
+  }
+  return(rules)
+}
+
+a <- AssociationRules(data,f_0,c_0)
