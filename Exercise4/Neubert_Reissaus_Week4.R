@@ -28,7 +28,52 @@ euclideanDistance <- function(e1, e2){
   return(sqrt(sum((e1- e2)^2)))
 }
 
-kmeans <- function(k, data){
+AlgoResults <- setClass( 
+  "AlgoResults",
+  slots = c(
+    iterations = "numeric",
+    centroids = "data.frame",
+    clusteredData = "data.frame"
+  )
+)
+
+getClosestClusterId <- function(element, centroids){
+  
+  # set min distance to max possible value
+  minDistance = .Machine$integer.max
+  cluster = 0
+  
+  for(centroidIdx in 1:nrow(centroids)){
+    distance = euclideanDistance(element, centroids[centroidIdx, ])
+    if(distance < minDistance){
+      minDistance = distance
+      cluster = centroidIdx
+    }
+  } 
+  return(cluster)
+}
+
+calculateAvgDistance <- function(clusteredData, centroids){
+
+  centroidsCopy = centroids  
+  clusterGroups = split(clusteredData, clusteredData[["cluster"]])  
+  
+  for(clusterGroup in clusterGroups){
+    
+    clusterId = clusterGroup[1,"cluster"]
+    centroid = centroidsCopy[clusterId,]
+    sumDistance = 0
+    for(i in 1:nrow(clusterGroup)){
+      sumDistance = sumDistance + euclideanDistance(centroid, clusterGroup[i, ])   
+    }
+    centroids[clusterId, "avgDistance"] = sumDistance/nrow(clusterGroup) 
+  }
+  return(centroids)
+}
+
+kmeans <- function(k, maxIterations, data){
+  
+  # set default cluster
   data[, "cluster"] = -1
   clusteredData = data
   
@@ -41,28 +86,14 @@ kmeans <- function(k, data){
     print(paste(c("iterations: ", iterations), collapse = " "))
        
     for(i in 1:nrow(data)){
-      cluster = 0
-      
-      # set min distance to max possible value
-      minDistance = .Machine$integer.max
-      for(centroidIdx in 1:nrow(centroids)){
-        distance = euclideanDistance(data[i,], centroids[centroidIdx, ])
-        if(distance < minDistance){
-          minDistance = distance
-          cluster = centroidIdx
-        }
-      }
-      clusteredData[i, "cluster"] = cluster
+      clusteredData[i, "cluster"] = getClosestClusterId(data[i,], centroids)
     }
     
-    # clusters have not changed
-    if(all(clusteredData[, "cluster"] == data[, "cluster"])){
-      
-      print("Centroids")
-      print(centroids)
-      print(paste(c("iterations: ", iterations), collapse= " "))
-      
-      return(clusteredData)
+    # cluster elements have not changed
+    if(all(clusteredData[, "cluster"] == data[, "cluster"]) || iterations == maxIterations){    
+      centroids = calculateAvgDistance(clusteredData, centroids)
+      algoResults = AlgoResults(iterations = iterations, centroids = centroids, clusteredData = clusteredData)
+      return(algoResults)
     }
   
     #update centroids
@@ -71,12 +102,12 @@ kmeans <- function(k, data){
       clusterId = clusterGroup[["cluster"]][[1]]
       centroids[clusterId, ] = colMeans(clusterGroup)
     }
-    
     data = clusteredData
   }
 }
 
-cluster = kmeans(7, kmeansData[1:200,])
+algoResults = kmeans(7, 10, kmeansData[1:200, ])
+
 
 
 
