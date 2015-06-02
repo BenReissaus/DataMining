@@ -14,9 +14,12 @@ setwd("/Users/Benji/Documents/Uni/Master/3.Semester/Data_Mining_Probabilistic_Re
 # plot(x=subMtcars$hp, y=subMtcars$drat, xlab="horsepower", ylab="rear axle ration", main="Mtcars: Horsepower - Rear Axle Ratio")
 # plot(x=subMtcars$wt, y=subMtcars$drat, xlab="weight", ylab="rear axle ration", main="Mtcars: Weight - Rear Axle Ratio")
 # 
-# 
-# fm <- lm(subMtcars$mpg ~ subMtcars$disp + subMtcars$hp + subMtcars$drat + subMtcars$wt)
+# fm <- lm(subMtcars$mpg ~ subMtcars$disp + subMtcars$hp + subMtcars$drat + subMtcars$wt, )
 # summary(fm)
+
+# values = data.frame(subMtcars$disp=230, subMtcars$hp=146, subMtcars$wt=3.2, subMtcars$drat=3.6)
+# 
+# predict(fm, values)
 
 # 4
 whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
@@ -41,41 +44,35 @@ AlgoResults <- setClass(
   )
 )
 
-getClosestClusterId <- function(element, centroids){
+getClosestClusterId <- function(distMeasure,element, centroids){
   
-  # set min distance to max possible value
-  minDistance = .Machine$integer.max
-  cluster = 0
+  distances = apply(centroids, 1, function(x) distMeasure(element, x))
   
-  for(centroidIdx in 1:nrow(centroids)){
-    distance = euclideanDistance(element, centroids[centroidIdx, ])
-    if(distance < minDistance){
-      minDistance = distance
-      cluster = centroidIdx
-    }
-  } 
-  return(cluster)
+  # sort distances to centroids and get name of smallest one
+  centroidName = names(sort(distances))[[1]]
+  centroidIndex = which(row.names(centroids) == centroidName)
+
+  return(centroidIndex)
 }
 
-calculateAvgDistance <- function(clusteredData, centroids){
+calculateAvgDistance <- function(distMeasure, clusteredData, centroids){
 
-  centroidsCopy = centroids  
   clusterGroups = split(clusteredData, clusteredData[["cluster"]])  
   
   for(clusterGroup in clusterGroups){
     
     clusterId = clusterGroup[1,"cluster"]
-    centroid = centroidsCopy[clusterId,]
-    sumDistance = 0
-    for(i in 1:nrow(clusterGroup)){
-      sumDistance = sumDistance + euclideanDistance(centroid, clusterGroup[i, ])   
-    }
+    centroid = centroids[clusterId, ! colnames(centroids) %in% c("cluster", "avgDistance")]
+    
+    distances = apply(clusterGroup, 1, function(x) distMeasure(centroid, x))
+    sumDistance = sum(distances)
+
     centroids[clusterId, "avgDistance"] = sumDistance/nrow(clusterGroup) 
   }
   return(centroids)
 }
 
-kmeans <- function(k, maxIterations, data){
+kmeans <- function(k, maxIterations, distMeasure, data){
   
   # set default cluster
   data[, "cluster"] = -1
@@ -88,14 +85,12 @@ kmeans <- function(k, maxIterations, data){
   while(TRUE){
     iterations = iterations + 1
     print(paste(c("iterations: ", iterations), collapse = " "))
-       
-    for(i in 1:nrow(data)){
-      clusteredData[i, "cluster"] = getClosestClusterId(data[i,], centroids)
-    }
+
+    clusteredData[, "cluster"] = apply(data, 1, function(x) getClosestClusterId(distMeasure, x, centroids))
     
     # cluster elements have not changed
     if(all(clusteredData[, "cluster"] == data[, "cluster"]) || iterations == maxIterations){    
-      centroids = calculateAvgDistance(clusteredData, centroids)
+      centroids = calculateAvgDistance(distMeasure, clusteredData, centroids)
       algoResults = AlgoResults(iterations = iterations, centroids = centroids, clusteredData = clusteredData)
       return(algoResults)
     }
@@ -110,7 +105,7 @@ kmeans <- function(k, maxIterations, data){
   }
 }
 
-algoResults = kmeans(7, 10, kmeansData[1:200, ])
+algoResults = kmeans(k=7, maxIterations=100, distMeasure=euclideanDistance, data=kmeansData)
 
 
 
