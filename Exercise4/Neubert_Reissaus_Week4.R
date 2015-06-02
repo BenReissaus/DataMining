@@ -3,23 +3,29 @@ setwd("/Users/Benji/Documents/Uni/Master/3.Semester/Data_Mining_Probabilistic_Re
 
 # 3
 
-# par(mfrow=c(2,3))
-# 
-# subMtcars = mtcars[, c("mpg", "disp","hp", "wt", "drat" )]
-# 
-# plot(x=subMtcars$disp, y=subMtcars$hp, xlab="displacement", ylab="horsepower", main="Mtcars: Displacement - Horsepower")
-# plot(x=subMtcars$disp, y=subMtcars$wt, xlab="displacement", ylab="weight", main="Mtcars: Displacement - Weight")
-# plot(x=subMtcars$disp, y=subMtcars$drat, xlab="displacement", ylab="rear axle ration", main="Mtcars: Displacement - Rear Axle Ratio")
-# plot(x=subMtcars$hp, y=subMtcars$wt, xlab="horsepower", ylab="weight", main="Mtcars: Horsepower - Weight")
-# plot(x=subMtcars$hp, y=subMtcars$drat, xlab="horsepower", ylab="rear axle ration", main="Mtcars: Horsepower - Rear Axle Ratio")
-# plot(x=subMtcars$wt, y=subMtcars$drat, xlab="weight", ylab="rear axle ration", main="Mtcars: Weight - Rear Axle Ratio")
-# 
-# fm <- lm(subMtcars$mpg ~ subMtcars$disp + subMtcars$hp + subMtcars$drat + subMtcars$wt, )
-# summary(fm)
+par(mfrow=c(2,3))
 
-# values = data.frame(subMtcars$disp=230, subMtcars$hp=146, subMtcars$wt=3.2, subMtcars$drat=3.6)
-# 
-# predict(fm, values)
+subMtcars = mtcars[, c("mpg", "disp","hp", "wt", "drat" )]
+
+plot(x=subMtcars$disp, y=subMtcars$hp, xlab="displacement", ylab="horsepower", main="Mtcars: Displacement - Horsepower")
+plot(x=subMtcars$disp, y=subMtcars$wt, xlab="displacement", ylab="weight", main="Mtcars: Displacement - Weight")
+plot(x=subMtcars$disp, y=subMtcars$drat, xlab="displacement", ylab="rear axle ration", main="Mtcars: Displacement - Rear Axle Ratio")
+plot(x=subMtcars$hp, y=subMtcars$wt, xlab="horsepower", ylab="weight", main="Mtcars: Horsepower - Weight")
+plot(x=subMtcars$hp, y=subMtcars$drat, xlab="horsepower", ylab="rear axle ration", main="Mtcars: Horsepower - Rear Axle Ratio")
+plot(x=subMtcars$wt, y=subMtcars$drat, xlab="weight", ylab="rear axle ration", main="Mtcars: Weight - Rear Axle Ratio")
+
+disp = subMtcars$disp
+hp = subMtcars$hp
+drat = subMtcars$drat
+wt = subMtcars$wt
+mpg = subMtcars$mpg
+
+fm <- lm(mpg ~ disp + hp + drat + wt, )
+summary(fm)
+
+newData = data.frame(disp=230, hp=146, wt=3.2, drat=3.6)
+
+predict(fm, newData)
 
 # 4
 whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
@@ -88,7 +94,7 @@ kmeans <- function(k, maxIterations, distMeasure, data){
 
     clusteredData[, "cluster"] = apply(data, 1, function(x) getClosestClusterId(distMeasure, x, centroids))
     
-    # cluster elements have not changed
+    # cluster elements have not changed or number of max iterations was reached
     if(all(clusteredData[, "cluster"] == data[, "cluster"]) || iterations == maxIterations){    
       centroids = calculateAvgDistance(distMeasure, clusteredData, centroids)
       algoResults = AlgoResults(iterations = iterations, centroids = centroids, clusteredData = clusteredData)
