@@ -28,6 +28,10 @@ euclideanDistance <- function(e1, e2){
   return(sqrt(sum((e1- e2)^2)))
 }
 
+manhattanDistance <- function(e1, e2){
+  return(sum(abs(e1-e2)))
+}
+
 AlgoResults <- setClass( 
   "AlgoResults",
   slots = c(
