@@ -3,29 +3,29 @@ setwd("/Users/Benji/Documents/Uni/Master/3.Semester/Data_Mining_Probabilistic_Re
 
 # 3
 
-# par(mfrow=c(2,3))
-# 
-# subMtcars = mtcars[, c("mpg", "disp","hp", "wt", "drat" )]
-# 
-# plot(x=subMtcars$disp, y=subMtcars$hp, xlab="displacement", ylab="horsepower", main="Mtcars: Displacement - Horsepower")
-# plot(x=subMtcars$disp, y=subMtcars$wt, xlab="displacement", ylab="weight", main="Mtcars: Displacement - Weight")
-# plot(x=subMtcars$disp, y=subMtcars$drat, xlab="displacement", ylab="rear axle ration", main="Mtcars: Displacement - Rear Axle Ratio")
-# plot(x=subMtcars$hp, y=subMtcars$wt, xlab="horsepower", ylab="weight", main="Mtcars: Horsepower - Weight")
-# plot(x=subMtcars$hp, y=subMtcars$drat, xlab="horsepower", ylab="rear axle ration", main="Mtcars: Horsepower - Rear Axle Ratio")
-# plot(x=subMtcars$wt, y=subMtcars$drat, xlab="weight", ylab="rear axle ration", main="Mtcars: Weight - Rear Axle Ratio")
-# 
-# disp = subMtcars$disp
-# hp = subMtcars$hp
-# drat = subMtcars$drat
-# wt = subMtcars$wt
-# mpg = subMtcars$mpg
-# 
-# fm <- lm(mpg ~ disp + hp + drat + wt, )
-# summary(fm)
-# 
-# newData = data.frame(disp=230, hp=146, wt=3.2, drat=3.6)
-# 
-# predict(fm, newData)
+par(mfrow=c(2,3))
+
+subMtcars = mtcars[, c("mpg", "disp","hp", "wt", "drat" )]
+
+plot(x=subMtcars$disp, y=subMtcars$hp, xlab="displacement", ylab="horsepower", main="Mtcars: Displacement - Horsepower")
+plot(x=subMtcars$disp, y=subMtcars$wt, xlab="displacement", ylab="weight", main="Mtcars: Displacement - Weight")
+plot(x=subMtcars$disp, y=subMtcars$drat, xlab="displacement", ylab="rear axle ration", main="Mtcars: Displacement - Rear Axle Ratio")
+plot(x=subMtcars$hp, y=subMtcars$wt, xlab="horsepower", ylab="weight", main="Mtcars: Horsepower - Weight")
+plot(x=subMtcars$hp, y=subMtcars$drat, xlab="horsepower", ylab="rear axle ration", main="Mtcars: Horsepower - Rear Axle Ratio")
+plot(x=subMtcars$wt, y=subMtcars$drat, xlab="weight", ylab="rear axle ration", main="Mtcars: Weight - Rear Axle Ratio")
+
+disp = subMtcars$disp
+hp = subMtcars$hp
+drat = subMtcars$drat
+wt = subMtcars$wt
+mpg = subMtcars$mpg
+
+fm <- lm(mpg ~ disp + hp + drat + wt, )
+summary(fm)
+
+newData = data.frame(disp=230, hp=146, wt=3.2, drat=3.6)
+
+predict(fm, newData)
 
 # 4
 whiteWineData <- read.csv("winequality-white.csv", header=T, sep=",",stringsAsFactors=F)  
@@ -120,10 +120,38 @@ kmeans <- function(k, maxIterations, distMeasure, data){
 
 algoResults = kmeans(k=7, maxIterations=100, distMeasure=euclideanDistance, data=kmeansData)
 
-#5
+# prints infos about centroids with sum of squared distances and average distance
+algoResults@centroids
 
 
 
+
+
+#7 print distances between nodes
+
+a = c(1,1,1)
+b = c(1,3,3)
+c = c(2,4,5)
+d = c(5,1,1)
+e = c(8,2,1)
+f = c(6,1,2)
+g = c(5,3,2)
+
+elements = list(a=a,b=b,c=c,d=d,e=e,f=f,g=g)
+numberElements = length(elements)
+
+for(i in 1:numberElements){
+
+  if(i == numberElements) { 
+    break 
+  }
+  beg = i+1
+  end = length(elements)
+  sequence = beg:end
+  for(j in sequence){
+    print(paste(c(names(elements)[[i]], "-", names(elements)[[j]], " distance: ", manhattanDistance(elements[[i]], elements[[j]])), collapse = " "))  
+  }
+}
 
 
 
