@@ -1,4 +1,4 @@
-setwd("/Users/Benji/Documents/Uni/Master/3.Semester/Data_Mining_Probabilistic_Reasoning/Exercises/Code/Exercise4")
+setwd("D:/Studium/Datamining/DataMining/Exercise4/")
 
 
 # 3
@@ -125,7 +125,31 @@ algoResults@centroids
 
 
 
+# 5
 
+whiteWineWOClass <- whiteWineData[, names(whiteWineData) != "class"]
+  
+k <- c(2:10)
+kMeansResults <- list()
+kMediansResults <- list()
+
+for(currentK in k) {
+  cat("current k: ")
+  cat(currentK)
+  kMeansResults[currentK] <- kmeans(k=currentK, maxIterations=100, distMeasure=euclideanDistance, data=whiteWineWOClass)
+  kMediansResults[currentK] <- kmeans(k=currentK, maxIterations=100, distMeasure=manhattanDistance, data=whiteWineWOClass)
+}
+
+sumsMeans <- c(0,0,0,0,0,0,0,0,0)
+sumsMedians <- c(0,0,0,0,0,0,0,0,0)
+for(currentK in k) {
+  sumsMeans[currentK-1] <- sum(kMeansResults[[currentK]]@centroids$sumSquaredDistance)
+  sumsMedians[currentK-1] <- sum(kMediansResults[[currentK]]@centroids$sumSquaredDistance)
+}
+plot(c(2:10), sumsMeans, main="k-Means Plot",xlab="k",ylab="sum of squared distances")
+plot(c(2:10), sumsMedians, main="k-Medians Plot",xlab="k",ylab="sum of squared distances")
+
+print("We would choose k = 10 for both methods because the plots show that this k minimizes the squared distances in the clusters. This means that the elements within a cluster are much closer together.")
 
 #7 print distances between nodes
 
