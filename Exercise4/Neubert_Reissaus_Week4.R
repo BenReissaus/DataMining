@@ -1,5 +1,6 @@
 setwd("D:/Studium/Datamining/DataMining/Exercise4/")
 
+library(package = "NbClust")
 
 # 3
 
@@ -150,6 +151,21 @@ plot(c(2:10), sumsMeans, main="k-Means Plot",xlab="k",ylab="sum of squared dista
 plot(c(2:10), sumsMedians, main="k-Medians Plot",xlab="k",ylab="sum of squared distances")
 
 print("We would choose k = 10 for both methods because the plots show that this k minimizes the squared distances in the clusters. This means that the elements within a cluster are much closer together.")
+
+indexes <- list("kl","ch","hartigan","ccc","scott", "marriot", "trcovw", "tracew", "friedman", "rubin", "cindex", "db", "silhouette", "duda", "pseudot2", "beale", "ratkowsky", "ball", "ptbiserial", "gap","frey", "mcclain", "gamma", "gplus", "tau", "dunn", "hubert", "sdindex", "dindex", "sdbw")
+results <- list()
+for(index in indexes) {
+  result <- NbClust(data=whiteWineWOClass,diss=NULL,distance="euclidean",min.nc=1,max.nc=,method="kmeans",index=index,alphaBeale=0.1)
+  results[index] <- result
+}
+counts <- c()
+for(i in length(results)) {
+  counts[i] <- 0
+}
+for(name in names(results)) {
+  counts[results[[name]]] <- counts[results[[name]]] + 1
+}
+counts
 
 #7 print distances between nodes
 
