@@ -36,7 +36,7 @@ bet <- function(){
     }
   }
   
-#   print(paste(c("total bets: ", totalBets, "highest bet: ", highestBet, " highest loss: ", biggestLoss), collapse = " "))
+  print(paste(c("total bets: ", totalBets, "highest bet: ", highestBet, " highest loss: ", biggestLoss), collapse = " "))
 #   hist(winningBetSizes, xlim=c(0,3000), xlab="occurrences", ylab="Winning Bet Size", main="Winning Bet Sizes")
   
   library(ggplot2)
