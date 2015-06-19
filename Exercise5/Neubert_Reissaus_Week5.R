@@ -1,8 +1,5 @@
-setwd("/Users/Benji/Documents/Uni/Master/3.Semester/Data_Mining_Probabilistic_Reasoning/Exercises/Code/Exercise5/")
-
 
 # 4 f
-
 bet <- function(){
     
   # set money to be 1€
@@ -45,3 +42,16 @@ bet <- function(){
 }
 
 bet()
+
+# Assignment 8
+
+library(MASS)
+plot(x=menarche$Age, y=menarche$Menarche/menarche$Total,xlab="Age", ylab="Menarche / Total", main="Femal Menarche")
+prob_distr = plogis(8:19, location = 13, scale=1)
+n = 8:19
+lines(n,prob_distr, lwd=3, col="dark red")
+
+glm.out <- glm(cbind(Menarche, Total-Menarche) ~ Age, family="binomial", data=menarche)
+plot(Menarche/Total ~ Age, data=menarche, main="Female Menarche")
+lines(menarche$Age, glm.out$fitted, type="l", col="red")
+
