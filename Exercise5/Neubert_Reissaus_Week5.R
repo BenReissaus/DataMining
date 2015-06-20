@@ -80,10 +80,18 @@ setosaCovariance = setosaScatter/50
 versicolorCovariance = versicolorScatter/50
 virginicaCovariance = virginicaScatter/50
 
+qda <- function(dataInstance, mean, priorProbability, covarianceMatrix){  
+  return(-0.5 * log(det(covarianceMatrix)) - 0.5*(dataInstance-mean) %*% solve(covarianceMatrix) %*% t(dataInstance-mean) + log(priorProbability)) 
+}
+
 # find best class 
+data1 = matrix(c(4.5, 2), nrow=1, ncol=2,byrow=FALSE)
 
+qda(data1, setosaMeans, 1/3, setosaCovariance)
+qda(data1, setosaMeans, 1/3, versicolorCovariance)
+qda(data1, setosaMeans, 1/3, virginicaCovariance)
 
-
+# some likelihood ratio now????
 
 
 # Assignment 8
