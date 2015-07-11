@@ -92,6 +92,8 @@ qda(data1, setosaMeans, 1/3, virginicaCovariance)
 
 # some likelihood ratio now????
 
+# man muss jede klasse mit jeder anderen klasse vergleichen. bsp setosa mit versicolor und virginica und versicolar und virginica
+
 
 #Assignment 8
 
