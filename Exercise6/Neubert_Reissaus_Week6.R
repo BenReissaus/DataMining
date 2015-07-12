@@ -1,34 +1,9 @@
+
 "Neubert, Reissaus - Assigment 7 - Week 6"
-# Assignment 7 
 
-gaussianData <- read.table("gaussians.txt")  
-statistics = summary(gaussianData)
-numberRows = nrow(gaussianData)
-
-
-require(pastecs)
-par(mfrow=c(2,3))
-for(i in 1:5){
-  
-  densityResult <- density(gaussianData[,i], bw = "sj")
-  
-#   # ATTEMPT TO FIND MEANS
-#   #make it a time series
-#   timeSeries_y<-ts(densityResult$y) 
-#   # get maxima and minima
-#   densityTurnPoints = turnpoints(timeSeries_y)
-#   means = densityResult$x[densityTurnPoints$peaks]
-  
-  gaussmix = normalmixEM(gaussianData[,i], k=3)
-
-  plot(gaussmix, which=2)
-  lines(d, lty=2, lwd=2)
-  print(gaussmix[c("lambda", "mu", "sigma")])
-}
-
-"My solution"
-
-setwd("D:/Studium/Datamining/DataMining/Exercise6/")
+#####
+# version 1
+#####
 
 library(mixtools)
 
@@ -75,3 +50,24 @@ stdD5 <- result5$sigma
 "From this results we can read the mean and standard deviation of the underlying normal distributions"
 means <- c(80.1,200,6,301.1)
 stdDev <- c(49.8,15.9,39.9)
+=======
+
+######
+# Version 2
+######
+
+require(mixtools)
+
+gaussianData <- read.table("gaussians.txt")  
+statistics = summary(gaussianData)
+
+par(mfrow=c(2,3))
+for(i in 1:5){ 
+  densityResult <- density(gaussianData[,i], bw = "sj")
+ 
+  gaussmix = normalmixEM(gaussianData[,i], k=3)
+
+  plot(gaussmix, which=2)
+  lines(densityResult, lty=2, lwd=2)
+  print(gaussmix[c("lambda", "mu", "sigma")])
+}
